@@ -6,4 +6,4 @@ export LD_LIBRARY_PATH
 PATH=$(pwd)/build/bin:$PATH
 export PATH
 
-postgres -D $(pwd)/build/data >pg.log 2>&1 &
+pg_ctl -D $(pwd)/build/data -l pg.log start
