@@ -19,6 +19,3 @@ make && make install
 echo ".. Checking installation"
 make check
 
-echo ".. Setting up IMDB cluster"
-$(pwd)/build/bin/initdb -D $(pwd)/build/data
-
