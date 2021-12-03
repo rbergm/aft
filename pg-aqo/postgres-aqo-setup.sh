@@ -1,7 +1,8 @@
 #!/bin/sh
 
 echo ".. Cloning Postgres 12"
-git clone --depth 1 --branch REL_12_8 https://github.com/postgres/postgres.git .
+git clone --depth 1 --branch REL_12_8 https://github.com/postgres/postgres.git postgres-aqo
+cd postgres-aqo
 
 echo ".. Downloading AQO patch for Postgres 12"
 git clone --depth 1 --branch stable12 https://github.com/postgrespro/aqo.git contrib/aqo
