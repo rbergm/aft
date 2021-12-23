@@ -16,8 +16,8 @@ def read_queries(source_dir: str, *, query_pattern="[0-9]*sql") -> List[str]:
     contents = []
     for query_file in queries:
         with query_file.open("r") as query:
-            query_content = query.readline()
-            contents.append("explain (analyze, format json) " + query_content)
+            query_content = " ".join([line.strip() for line in query.readlines()])
+            contents.append("explain (analyze, format json) " + query_content + "\n")
 
     return contents
 
