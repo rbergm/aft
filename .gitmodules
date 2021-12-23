@@ -1,0 +1,3 @@
+[submodule "ues/sdr-data"]
+	path = ues/sdr-data
+	url = https://github.com/axhertz/SimplicityDoneRight.git
