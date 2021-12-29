@@ -17,9 +17,13 @@ def read_queries(source_dir: str, *, query_pattern="[0-9]*sql") -> List[str]:
     for query_file in queries:
         with query_file.open("r") as query:
             query_content = " ".join([line.strip() for line in query.readlines()])
-            contents.append("explain (analyze, format json) " + query_content + "\n")
+            contents.append(query_content)
 
     return contents
+
+
+def expand_queries(queries: List[str], prefix="", suffix="") -> List[str]:
+    return [prefix + q + suffix for q in queries]
 
 
 def write_queries(queries: List[str], outfile: str, *, prefix="", suffix="", include_preamble=True) -> None:
@@ -44,6 +48,7 @@ def main():
 
     args = parser.parse_args()
     queries = read_queries(args.source_dir, query_pattern=args.pattern)
+    queries = expand_queries(queries, "explain (analyze, format json) ", "\n")
     write_queries(queries, args.out_file, prefix=args.prefix, suffix=args.suffix)
 
 
