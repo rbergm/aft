@@ -39,7 +39,7 @@ def write_queries(queries: List[str], outfile: str, *, prefix="", suffix="", inc
 
 
 def main():
-    parser = argparse.ArgumentParser(description = "Utility to create SQL batches from individual queries")
+    parser = argparse.ArgumentParser(description="Utility to create SQL batches from individual queries")
     parser.add_argument("source_dir", action="store", help="Directory containing the source queries")
     parser.add_argument("out_file", action="store", help="Name of the output file")
     parser.add_argument("--prefix", action="store", required=False, default="", help="Prefix (e.g. query) to insert before the first real query")
