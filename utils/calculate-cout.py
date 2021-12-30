@@ -92,7 +92,7 @@ def generate_dataframe(queries: List[str], operator_trees: List[OperatorNode], q
 
 
 def normalize_query(query: str) -> str:
-    return re.sub(r"\W", "", query)
+    return re.sub(r"\s", "", query)
 
 
 def read_query_sources(source_dir: str, query_pattern="") -> Dict[str, str]:
