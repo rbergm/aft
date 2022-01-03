@@ -69,11 +69,18 @@ def parse_query_plan(plan_node: List[Any]) -> OperatorNode:
     return node
 
 
+def drop_prefix(text: str, prefix: str) -> str:
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    else:
+        return text
+
+
 def read_queries(file: str) -> List[str]:
     queries = []
     with open(file, "r") as query_file:
         queries = query_file.readlines()
-        queries = [q.strip("explain (analyze, format json) ") for q in queries]
+        queries = [drop_prefix(q, "explain (analyze, format json) ") for q in queries]
     return queries
 
 
