@@ -127,7 +127,7 @@ def main():
     sources = []
     if (args.sources):
         labels_map = read_query_sources(args.sources)
-        sources = [labels_map[normalize_query(q)] for q in queries]
+        sources = [labels_map.get(normalize_query(q), "") for q in queries]
 
     df = generate_dataframe(queries, operator_trees, plans, sources)
     df.to_csv(args.out, index=False)
