@@ -1,4 +1,4 @@
 #!/bin/sh
 
-pg_ctl -D $(pwd)/build/data stop
+pg_ctl -D $(pwd)/postgres-aqo/build/data stop
 
