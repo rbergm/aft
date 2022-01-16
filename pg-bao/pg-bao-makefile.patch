@@ -1,0 +1,4 @@
+5c5
+< PG_CONFIG = pg_config
+---
+> PG_CONFIG = ../../../build/bin/pg_config
