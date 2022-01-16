@@ -13,7 +13,7 @@ initdb -D $(pwd)/build/data
 echo ".. Starting Postgres"
 pg_ctl -D $(pwd)/build/data -l pg.log start
 
-echo ".. Creating user database for $(whoami)"
+echo ".. Creating user database for $USER"
 createdb $(whoami)
 
 echo ".. Setting up BAO"

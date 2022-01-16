@@ -15,4 +15,14 @@ make clean && make && make install
 echo ".. Installing BAO extension for Postgres"
 cd contrib/bao/pg_extension
 make USE_PGXS=1 install
+cd ..
+
+echo ".. Setting up BAO server"
+echo "... Creating virtual environment for BAO"
+python3 -m venv bao-venv
+. bao-venv/bin/activate
+echo "... Installing dependencies"
+pip3 install scikit-learn numpy joblib torch psycopg2
+echo "Configuring server"
+sed -i "s/^PostgreSQLConnectString.*/PostgreSQLConnectString = user=$USER/" bao_server/bao.cfg
 
