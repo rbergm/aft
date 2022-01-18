@@ -24,4 +24,3 @@ echo ".. Restarting to apply changes"
 pg_ctl restart -D $(pwd)/build/data
 
 echo ".. Done, Ready to connect"
-
