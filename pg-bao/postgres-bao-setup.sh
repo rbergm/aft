@@ -7,6 +7,7 @@ cd postgres-bao
 echo ".. Downloading BAO for Postgres 12"
 git clone --depth 1 https://github.com/learnedsystems/BaoForPostgreSQL contrib/bao
 patch contrib/bao/pg_extension/Makefile < ../pg-bao-makefile.patch
+patch contrib/bao/bao_server/main.py < ../pg-bao-server.patch
 
 echo ".. Building Postgres"
 ./configure --prefix=$(pwd)/build

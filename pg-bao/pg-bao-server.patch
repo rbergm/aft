@@ -1,0 +1,51 @@
+6a7,8
+> import signal
+> import functools
+57c59
+<     
+---
+> 
+70c72
+<                 
+---
+> 
+75c77
+<             
+---
+> 
+85c87
+<             
+---
+> 
+101c103
+<     
+---
+> 
+124c126
+<             
+---
+> 
+129c131
+<                 
+---
+> 
+137c139
+<     
+---
+> 
+143a146,150
+> def shutdown_server(server, *args, **kwargs):
+>     print("Received shutdown request")
+>     server.terminate()
+>     print("Server stopped")
+> 
+153c160
+<     
+---
+> 
+155c162,164
+<     
+---
+> 
+>     signal.signal(signal.SIGINT, functools.partial(shutdown_server, server))
+> 

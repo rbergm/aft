@@ -1,3 +1,6 @@
 # All Postgres files will be cloned from git as well.
 # Therefore we definitely do not want to track that directory.
 postgres-bao/
+
+# Misc other files
+.bao_server.pid
