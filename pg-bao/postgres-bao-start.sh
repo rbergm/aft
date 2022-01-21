@@ -8,9 +8,10 @@ cd bao_server
 python3 main.py > $WD/bao_server.log &
 echo $! > $WD/.bao_server.pid
 echo ".. BAO Server started"
+cd $WD
 
 echo ".. Starting Postgres Server"
-cd postgres-aqo
+cd postgres-bao
 LD_LIBRARY_PATH=$(pwd)/build/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
 
