@@ -59,6 +59,8 @@ def bao_reset():
     conn = sqlite3.connect("bao/bao_server/bao.db")
     cursor = conn.cursor()
     cursor.execute("DELETE FROM experience")
+    cursor.execute("DELETE FROM experimental_query")
+    cursor.execute("DELETE FROM experience_for_experimental")
     conn.commit()
     os.system("rm -rf bao/bao_server/bao_*_model")
 
