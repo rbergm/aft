@@ -60,6 +60,7 @@ def bao_reset():
     cursor = conn.cursor()
     cursor.execute("DELETE FROM experience")
     conn.commit()
+    os.system("rm -rf bao/bao_server/bao_*_model")
 
 
 def run_workload_chunked(workload: List[str], *, conn: "pg.connection", chunk_size: int) -> List[str]:
