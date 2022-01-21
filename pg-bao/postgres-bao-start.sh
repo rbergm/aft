@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [ -f .bao_server.pid ]
+then
+	echo "ERROR: BAO Server appears to be running already (file .bao_server.pid exists)"
+	exit 1
+fi
+
 echo ".. Starting BAO Server"
 WD=$(pwd)
 cd postgres-bao/contrib/bao/
