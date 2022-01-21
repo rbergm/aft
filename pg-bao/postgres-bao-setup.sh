@@ -1,5 +1,7 @@
 #!/bin/sh
 
+WD=$(pwd)
+
 echo ".. Cloning Postgres 12"
 git clone --depth 1 --branch REL_12_8 https://github.com/postgres/postgres.git postgres-bao
 cd postgres-bao
@@ -27,3 +29,6 @@ echo "... Installing dependencies"
 pip3 install wheel scikit-learn numpy joblib torch psycopg2
 echo "Configuring server"
 sed -i "s/^PostgreSQLConnectString.*/PostgreSQLConnectString = user=$USER/" bao_server/bao.cfg
+
+cd $WD
+ln -s postgres-bao/contrib/bao/ bao
