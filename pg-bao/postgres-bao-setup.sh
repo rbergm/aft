@@ -28,7 +28,7 @@ python3 -m venv bao-venv
 echo "... Installing dependencies"
 pip3 install wheel scikit-learn numpy joblib torch psycopg2
 echo "Configuring server"
-sed -i "s/^PostgreSQLConnectString.*/PostgreSQLConnectString = user=$USER/" bao_server/bao.cfg
+sed -i "s/^PostgreSQLConnectString.*/PostgreSQLConnectString = dbname=imdb user=$USER host=localhost/" bao_server/bao.cfg
 
 cd $WD
 ln -s postgres-bao/contrib/bao/ bao
