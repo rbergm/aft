@@ -9,7 +9,7 @@ then
     exit 1
 fi
 
-echo "Stopping BAO Server"
+echo ".. Stopping BAO Server"
 PID=$(cat .bao_server.pid)
 
 echo "Killing server with PID $PID"
