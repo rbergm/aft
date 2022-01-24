@@ -5,6 +5,7 @@ import functools
 import getpass
 import json
 import os
+import signal
 import sys
 from typing import Any, Dict, List
 
@@ -79,16 +80,12 @@ class BaoCtl:
         self.on(learning=False)
 
 
-def read_raw_workload(workload: str, *, simplify=False) -> List[str]:
+def read_raw_workload(workload: str) -> List[str]:
     contents = []
     with open(workload, "r") as workload_file:
         contents = workload_file.readlines()
 
-    without_comments = [query for query in contents if not query.startswith(COMMENT_PREFIX)]
-    if simplify:
-        return [simplify_query(query) for query in without_comments] if simplify else without_comments
-    else:
-        return without_comments
+    return [query for query in contents if not query.startswith(COMMENT_PREFIX)]
 
 
 def execute_single_query(cursor: "pg.cursor", query: str, workload=True) -> Any:
@@ -183,7 +180,8 @@ def main():
     parser.add_argument("--output", "-o", action="store",
                         help="File to write the workload results to.")
     parser.add_argument("--pg-connect", "-c", metavar="connect", action="store", help="Custom Postgres connect string")
-    parser.add_argument("--simplify", action="store_true", help="If set, don't run queries as EXPLAIN but only the actual query.")
+
+    signal.signal(signal.SIGINT, lambda: sys.exit(1))
 
     args = parser.parse_args()
     if not (args.run_workload or args.retrain_bao or args.reset_bao):
@@ -198,7 +196,7 @@ def main():
     result_writer = functools.partial(write_results_file, out=args.output) if args.output else write_results_stdout
 
     if args.run_workload:
-        workload = read_raw_workload(args.workload, simplify=args.simplify)
+        workload = read_raw_workload(args.workload)
         results = []
         if args.retrain >= 0:
             results = run_workload_chunked(workload, conn=postgres, chunk_size=args.retrain)
