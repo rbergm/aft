@@ -11,7 +11,7 @@ from typing import Any, Dict, List
 import pandas as pd
 
 
-def read_query_plans(file: str) -> List[Any]:
+def read_query_plans_psql(file: str) -> List[Any]:
     raw_plans = []
     with open(file, "r") as query_file:
         raw_plans = query_file.read()
@@ -22,6 +22,25 @@ def read_query_plans(file: str) -> List[Any]:
     raw_plans = [qp.strip(string.whitespace + '"').replace('""', '"') for qp in raw_plans]
 
     plans = [json.loads(qp) for qp in raw_plans]
+    return plans
+
+
+def read_query_plans_bao(file: str) -> List[Any]:
+    raw_plans = []
+    with open(file, "r") as query_file:
+        raw_plans = query_file.readlines()
+
+    plans = []
+    for qp in raw_plans:
+        parsed_plan = json.loads(qp)
+
+        # the first entry in the EXPLAIN ANALYZE output is the BAO output,
+        # the second entry the actual planner data.
+        # We need to merge this into a single dict
+        refactored_plan = list(parsed_plan)
+        refactored_plan[1]["Bao"] = parsed_plan[0]["Bao"]
+        del refactored_plan[0]
+        plans.append(refactored_plan)
     return plans
 
 
@@ -57,15 +76,15 @@ def parse_query_plan(plan_node: List[Any]) -> OperatorNode:
         node_description = plan_node.get("Relation Name", "")
     else:
         logging.info("Unkown node type:", plan_node["Node Type"])
-    
+
     rows_processed = 0
     if is_join_node(plan_node["Node Type"]):
         rows_processed = plan_node["Actual Rows"]
-    
+
     node = OperatorNode(plan_node["Node Type"], node_description, rows_processed)
-    
+
     node.child_nodes = [parse_query_plan(child) for child in plan_node.get("Plans", [])]
-    
+
     return node
 
 
@@ -125,9 +144,10 @@ def main():
     parser.add_argument("--queries", "-q", action="store", help="File containing the actual queries", required=True)
     parser.add_argument("--out", "-o", action="store", help="Name of the output csv file", required=True)
     parser.add_argument("--sources", "-s", action="store", help="Directory containing the raw query files (before merging), file names will be used as labels", required=False, default="")
+    parser.add_argument("--mode", "-m", action="store", choices=["psql", "bao"], default="psql", help="Description of the EXPLAIN ANALYZE format. 'psql' indicates that the results were obtained directly from psql, using CSV output, which makes a lot of cleanup necessary. If set to 'bao', the output was obtained from a BAO instance directly via the psycopg2 interface, resulting in a different cleanup. Defaults to 'psql'.")
 
     args = parser.parse_args()
-    plans = read_query_plans(args.plans)
+    plans = read_query_plans_psql(args.plans) if args.mode == "psql" else read_query_plans_bao(args.plans)
     operator_trees = [parse_query_plan(p[0]["Plan"]) for p in plans]
     queries = read_queries(args.queries)
 
