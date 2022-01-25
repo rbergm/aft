@@ -4,12 +4,15 @@ import argparse
 import functools
 import getpass
 import json
+import math
 import os
 import signal
 import sys
+import timeit
 from typing import Any, Dict, List
 
 import numpy as np
+import pandas as pd
 import psycopg2 as pg
 
 SELECT_QUERY_PREFIX = "select"
@@ -164,6 +167,19 @@ def write_results_stdout(results: List[str]) -> None:
         print(result, end="")
 
 
+def write_runtime(args: argparse.Namespace, runtime: int) -> None:
+    if args.run_workload:
+        action = "workload"
+    elif args.retrain_bao:
+        action = "retrain"
+    elif args.reset_bao:
+        action = "reset"
+
+    out_file = args.timing_out if args.timing_out else "bao-ctl-timing.csv"
+    timing_df = pd.DataFrame({"action": [action], "runtime": [runtime]})
+    timing_df.to_csv(out_file, index=False)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Utility to run an SQL workload and control the BAO server.")
@@ -180,6 +196,8 @@ def main():
     parser.add_argument("--output", "-o", action="store",
                         help="File to write the workload results to.")
     parser.add_argument("--pg-connect", "-c", metavar="connect", action="store", help="Custom Postgres connect string")
+    parser.add_argument("--timing", "-t", action="store_true", help="Measure the execution time of this script")
+    parser.add_argument("--timing-out", action="store", help="Write timing information to the given file")
 
     signal.signal(signal.SIGINT, lambda: sys.exit(1))
 
@@ -191,11 +209,13 @@ def main():
         parser.error(
             "No workload given. Use --workload to specify the source file.")
 
-    pg_connect = args.pg_connect if args.pg_connect else "dbname=imdb user={u} host=localhost".format(u=getpass.getuser())
-    postgres = pg.connect(pg_connect)
-    result_writer = functools.partial(write_results_file, out=args.output) if args.output else write_results_stdout
+    if args.timing:
+        start_time = timeit.default_timer()
 
     if args.run_workload:
+        pg_connect = args.pg_connect if args.pg_connect else "dbname=imdb user={u} host=localhost".format(u=getpass.getuser())
+        postgres = pg.connect(pg_connect)
+        result_writer = functools.partial(write_results_file, out=args.output) if args.output else write_results_stdout
         workload = read_raw_workload(args.workload)
         results = []
         if args.retrain >= 0:
@@ -203,6 +223,7 @@ def main():
         elif args.run_workload:
             results = run_workload_chunked(workload, conn=postgres, chunk_size=np.inf)
         result_writer(results)
+        postgres.close()
     elif args.retrain_bao:
         bao_retrain()
     elif args.reset_bao:
@@ -210,7 +231,13 @@ def main():
     else:
         raise ValueError("Unknown action given. This is a bug!")
 
-    postgres.close()
+    if args.timing:
+        end_time = timeit.default_timer()
+        runtime = math.floor((end_time - start_time) * 1000)
+        if args.timing_out:
+            write_runtime(args, runtime)
+        else:
+            print(runtime)
 
 
 if __name__ == "__main__":
