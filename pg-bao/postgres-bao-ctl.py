@@ -10,6 +10,7 @@ import random
 import signal
 import sys
 import timeit
+import warnings
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
@@ -100,6 +101,17 @@ def read_raw_workload(workload: str) -> List[str]:
         contents = workload_file.readlines()
 
     return [query for query in contents if not query.startswith(COMMENT_PREFIX)]
+
+
+def read_queries_for_training(workload: List[str], src: str) -> List[Tuple[str, bool]]:
+    training_df = pd.read_csv(src)
+    workload_df = pd.DataFrame({"query": workload})
+    merged_df = workload_df.merge(training_df, how="left")
+    if merged_df.training.isna().any():
+        missing_count = merged_df.training.isna().sum()
+        warnings.warn(f"Could not completely reconstruct training information. Excluding missing queries from training. {missing_count} queries affected.")
+        merged_df.training.fillna(value=False, inplace=True)
+    return list(zip(merged_df["query"], merged_df.training))
 
 
 def select_queries_for_training(workload: List[str], training_fraction: float) -> List[Tuple[str, bool]]:
@@ -241,6 +253,7 @@ def main():
     parser.add_argument("--retrain", "-r", metavar="N", action="store", type=int, default=-1,
                         help="Retrain the BAO model every N queries. Only used if --run-workload is set.")
     parser.add_argument("--training-fraction", action="store", type=float, help="Fraction of the workload queries to be used as training data. By default, all queries will be used for training.")
+    parser.add_argument("--training-in", action="store", help="File to read which workload queries should be used for training. Has to have the same format as produced by --training-out.")
     parser.add_argument("--training-out", action="store", help="File to document which queries were used for training.")
     parser.add_argument("--output", "-o", action="store",
                         help="File to write the workload results to.")
@@ -270,8 +283,11 @@ def main():
 
         # prepare the workload
         workload = read_raw_workload(args.workload)
-        if args.training_fraction:
+        if args.training_fraction and not args.training_in:
             workload = select_queries_for_training(workload, args.training_fraction)
+        elif args.training_in:
+            warnings.warn("Ignoring --training-fraction argument since source file was specified explicitly.")
+            workload = read_queries_for_training(workload, args.training_in)
 
         # prepare the computation
         chunk_size = args.retrain if args.retrain >= 0 else np.inf
