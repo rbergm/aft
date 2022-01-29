@@ -22,11 +22,11 @@ make USE_PGXS=1 install
 cd ..
 
 echo ".. Setting up BAO server"
-echo "... Creating virtual environment for BAO"
+echo "... Creating virtual environment for BAO under $(pwd)/bao-venv"
 python3 -m venv bao-venv
 . bao-venv/bin/activate
 echo "... Installing dependencies"
-pip3 install wheel scikit-learn numpy joblib torch psycopg2
+pip3 install wheel scikit-learn numpy joblib torch psycopg2 pandas
 echo "Configuring server"
 sed -i "s/^PostgreSQLConnectString.*/PostgreSQLConnectString = dbname=imdb user=$USER host=localhost/" bao_server/bao.cfg
 
