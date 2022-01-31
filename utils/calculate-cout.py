@@ -76,7 +76,7 @@ def parse_query_plan(plan_node: List[Any]) -> OperatorNode:
     elif plan_node["Node Type"].endswith("Scan"):
         node_description = plan_node.get("Relation Name", "")
     else:
-        logging.info("Unkown node type:", plan_node["Node Type"])
+        logging.debug("Unkown node type: %s", plan_node["Node Type"])
 
     rows_processed = 0
     if is_join_node(plan_node["Node Type"]):
@@ -140,6 +140,9 @@ def read_query_sources(source_dir: str, query_pattern="") -> Dict[str, str]:
 
 
 def main():
+    logging.captureWarnings(True)
+    logging.basicConfig(format="%(asctime)s : %(message)s", level=logging.INFO)
+
     parser = argparse.ArgumentParser(description="Utility to calculate C_out values from batches of EXPLAIN ANALYZE queries")
     parser.add_argument("--plans", "-p", action="store", help="File containing the EXPLAIN ANALYZE output", required=True)
     parser.add_argument("--queries", "-q", action="store", help="File containing the actual queries. Tries to read COUT_QUERIES environment variable if not specified.")
@@ -148,7 +151,12 @@ def main():
     parser.add_argument("--mode", "-m", action="store", choices=["psql", "bao"], default="psql", help="Description of the EXPLAIN ANALYZE format. 'psql' indicates that the results were obtained directly from psql, using CSV output, which makes a lot of cleanup necessary. If set to 'bao', the output was obtained from a BAO instance directly via the psycopg2 interface, resulting in a different cleanup. Defaults to 'psql'.")
 
     args = parser.parse_args()
-    queries_file = args.queries if args.queries else os.getenv("COUT_QUERIES", "")
+
+    if not args.queries:
+        queries_file = os.getenv("COUT_QUERIES", "")
+        logging.info("Loading queries file from environment: %s", queries_file)
+    else:
+        queries_file = args.queries
     if not queries_file:
         parser.error("Queries file not specified. Either add --queries or set the COUT_QUERIES environment variable.")
 
@@ -157,7 +165,10 @@ def main():
 
     queries = read_queries(queries_file)
 
-    sources_dir = args.sources if args.sources else os.getenv("COUT_SOURCES", "")
+    env_sources_dir = os.getenv("COUT_SOURCES", "")
+    sources_dir = args.sources if args.sources else env_sources_dir
+    if not args.sources and env_sources_dir:
+        logging.info("Using sources directory from environment: %s", env_sources_dir)
 
     sources = []
     if sources_dir:
