@@ -11,5 +11,5 @@ do
 	echo ".. Running workload"
 	./postgres-bao-ctl.py --run-workload --workload workloads/job-full.sql -o workloads/job-full-train-run$run.out 2>job-full-train-run$run.log
 	echo ".. Retraining model"
-	./postgres-bao-ctl.py --retrain-bao
+	./postgres-bao-ctl.py --retrain-bao --timing --timing-out workloads/job-full-train-timing-run$run.csv
 done
