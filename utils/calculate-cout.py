@@ -3,6 +3,7 @@
 import argparse
 import json
 import logging
+import os
 import pathlib
 import re
 import string
@@ -108,7 +109,7 @@ def generate_dataframe(queries: List[str], operator_trees: List[OperatorNode], q
     serialized_plans = [json.dumps(qp) for qp in query_plans]
     exec_times = [qp[0]["Execution Time"] for qp in query_plans]
     plan_times = [qp[0]["Planning Time"] for qp in query_plans]
-    
+
     columns = {"query": queries, "cout": cout_values, "plan": serialized_plans, "t_exec": exec_times, "t_plan": plan_times}
     if source_labels:
         columns["label"] = source_labels
@@ -134,26 +135,33 @@ def read_query_sources(source_dir: str, query_pattern="") -> Dict[str, str]:
             query_content = " ".join([line.strip() for line in query.readlines()])
             query_content = normalize_query(query_content)
             contents[query_content] = query_file.stem
-    
+
     return contents
 
 
 def main():
     parser = argparse.ArgumentParser(description="Utility to calculate C_out values from batches of EXPLAIN ANALYZE queries")
     parser.add_argument("--plans", "-p", action="store", help="File containing the EXPLAIN ANALYZE output", required=True)
-    parser.add_argument("--queries", "-q", action="store", help="File containing the actual queries", required=True)
+    parser.add_argument("--queries", "-q", action="store", help="File containing the actual queries. Tries to read COUT_QUERIES environment variable if not specified.")
     parser.add_argument("--out", "-o", action="store", help="Name of the output csv file", required=True)
-    parser.add_argument("--sources", "-s", action="store", help="Directory containing the raw query files (before merging), file names will be used as labels", required=False, default="")
+    parser.add_argument("--sources", "-s", action="store", help="Directory containing the raw query files (before merging), file names will be used as labels.  Tries to read COUT_SOURCES environment variable if not specified.", required=False, default="")
     parser.add_argument("--mode", "-m", action="store", choices=["psql", "bao"], default="psql", help="Description of the EXPLAIN ANALYZE format. 'psql' indicates that the results were obtained directly from psql, using CSV output, which makes a lot of cleanup necessary. If set to 'bao', the output was obtained from a BAO instance directly via the psycopg2 interface, resulting in a different cleanup. Defaults to 'psql'.")
 
     args = parser.parse_args()
+    queries_file = args.queries if args.queries else os.getenv("COUT_QUERIES", "")
+    if not queries_file:
+        parser.error("Queries file not specified. Either add --queries or set the COUT_QUERIES environment variable.")
+
     plans = read_query_plans_psql(args.plans) if args.mode == "psql" else read_query_plans_bao(args.plans)
     operator_trees = [parse_query_plan(p[0]["Plan"]) for p in plans]
-    queries = read_queries(args.queries)
+
+    queries = read_queries(queries_file)
+
+    sources_dir = args.sources if args.sources else os.getenv("COUT_SOURCES", "")
 
     sources = []
-    if (args.sources):
-        labels_map = read_query_sources(args.sources)
+    if sources_dir:
+        labels_map = read_query_sources(sources_dir)
         sources = [labels_map.get(normalize_query(q), "") for q in queries]
 
     df = generate_dataframe(queries, operator_trees, plans, sources)
