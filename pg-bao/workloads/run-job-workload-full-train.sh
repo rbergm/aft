@@ -2,6 +2,7 @@
 
 REPETITIONS=3
 
+echo "Resetting current BAO model"
 ./postgres-bao-ctl.py --reset-bao
 
 for ((run=1 ; run <= $REPETITIONS ; run++))
