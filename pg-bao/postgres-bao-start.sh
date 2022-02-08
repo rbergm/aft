@@ -12,8 +12,9 @@ cd postgres-bao/contrib/bao/
 . bao-venv/bin/activate
 cd bao_server
 CUDA_VISIBLE_DEVICES="" python3 main.py > $WD/bao_server.log 2>&1 &
-echo $! > $WD/.bao_server.pid
-echo ".. BAO Server started"
+BAO_PID=$!
+echo $BAO_PID > $WD/.bao_server.pid
+echo ".. BAO Server started, running on PID $BAO_PID"
 cd $WD
 
 echo ".. Starting Postgres Server"
