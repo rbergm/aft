@@ -14,12 +14,14 @@ do
 		OUT_FILE=/dev/null
 		LOG_FILE=/dev/null
 		TIM_FILE=/dev/null
+		QUIET="-q"
 	else
 		OUT_FILE=workloads/job-full-train-run$run.out
 		LOG_FILE=workloads/job-full-train-run$run.log
 		TIM_FILE=workloads/job-full-train-timing-run$run.csv
+		QUIET=""
 	fi
-	./postgres-bao-ctl.py --run-workload --workload workloads/job-full.sql -o $OUT_FILE 2>$LOG_FILE
+	./postgres-bao-ctl.py --run-workload --workload workloads/job-full.sql -o $OUT_FILE $QUIET 2>$LOG_FILE
 	echo ".. Retraining model"
 	./postgres-bao-ctl.py --retrain-bao --timing --timing-out $TIM_FILE
 done
