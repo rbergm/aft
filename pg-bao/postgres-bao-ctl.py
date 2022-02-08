@@ -23,9 +23,15 @@ COMMENT_PREFIX = "--"
 
 BAO_NUM_ARMS = int(os.environ.get("BAO_NUM_ARMS", 5))
 
+QUIET = False
+
 
 def message(*contents: str) -> None:
     """print for stderr."""
+    global QUIET
+
+    if QUIET:
+        return
     print(*contents, file=sys.stderr)
 
 
@@ -148,15 +154,19 @@ def execute_single_query(cursor: "pg.cursor", query: str, *, workload=True, for_
 
 
 def bao_retrain():
-    os.system("""cd bao/bao_server && CUDA_VISIBLE_DEVICES="" python3 baoctl.py --retrain""")
+    global QUIET
+    quiet = "> /dev/null" if QUIET else ""
+    os.system(f"""cd bao/bao_server && CUDA_VISIBLE_DEVICES="" python3 baoctl.py --retrain ${quiet}""")
     os.system("sync")
 
 
 def bao_reset():
-    os.system("./postgres-bao-shutdown.sh")
+    global quiet
+    quiet = "> /dev/null" if QUIET else ""
+    os.system(f"./postgres-bao-shutdown.sh ${quiet}")
     os.system("rm bao/bao_server/bao.db")
     os.system("rm -rf bao/bao_server/bao_*_model")
-    os.system("./postgres-bao-start.sh")
+    os.system(f"./postgres-bao-start.sh ${quiet}")
 
 
 def run_workload_chunked(workload: Union[List[str], List[Tuple[str, bool]]], *, conn: "pg.connection", training_chunk_size: int) -> List[str]:
@@ -240,6 +250,8 @@ def write_training_status(workload: List[Tuple[str, bool]], out: str) -> None:
 
 
 def main():
+    global QUIET
+
     parser = argparse.ArgumentParser(
         description="Utility to run an SQL workload and control the BAO server.")
     arg_grp = parser.add_mutually_exclusive_group()
@@ -260,6 +272,7 @@ def main():
     parser.add_argument("--pg-connect", "-c", metavar="connect", action="store", help="Custom Postgres connect string")
     parser.add_argument("--timing", "-t", action="store_true", help="Measure the execution time of this script")
     parser.add_argument("--timing-out", action="store", help="Write timing information to the given file")
+    parser.add_argument("--quiet", "-q", action="store_true", help="Don't write messages to stderr.", default=False)
 
     args = parser.parse_args()
     if not (args.run_workload or args.retrain_bao or args.reset_bao):
@@ -269,6 +282,7 @@ def main():
         parser.error(
             "No workload given. Use --workload to specify the source file.")
 
+    QUIET = args.quiet
     signal.signal(signal.SIGINT, lambda: sys.exit(1))
 
     if args.timing:
