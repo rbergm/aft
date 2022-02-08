@@ -9,7 +9,17 @@ for ((run=1 ; run <= $REPETITIONS ; run++))
 do
 	echo "Run $run"
 	echo ".. Running workload"
-	./postgres-bao-ctl.py --run-workload --workload workloads/job-full.sql -o workloads/job-full-train-run$run.out 2>job-full-train-run$run.log
+	if [ "$1" = "--dummy" ]
+	then
+		OUT_FILE=/dev/null
+		LOG_FILE=/dev/null
+		TIM_FILE=/dev/null
+	else
+		OUT_FILE=workloads/job-full-train-run$run.out
+		LOG_FILE=workloads/job-full-train-run$run.log
+		TIM_FILE=workloads/job-full-train-timing-run$run.csv
+	fi
+	./postgres-bao-ctl.py --run-workload --workload workloads/job-full.sql -o $OUT_FILE 2>$LOG_FILE
 	echo ".. Retraining model"
-	./postgres-bao-ctl.py --retrain-bao --timing --timing-out workloads/job-full-train-timing-run$run.csv
+	./postgres-bao-ctl.py --retrain-bao --timing --timing-out $TIM_FILE
 done
