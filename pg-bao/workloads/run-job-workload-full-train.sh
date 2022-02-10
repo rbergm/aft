@@ -35,16 +35,22 @@ if [ "$RESET" = true ] ; then
 	./postgres-bao-ctl.py --reset-bao
 fi
 
+if [ "$CLEAR_CACHE" = true ] ; then
+	OUT_CACHE_SUFFIX="-no-cache"
+else
+	OUT_CACHE_SUFFIX=""
+fi
+
 for ((run=1 ; run <= $REPETITIONS ; run++))
 do
-	echo "Run $run"
+	echo "Iteration $run"
 
 	if [ "$CLEAR_CACHE" = true ] ; then
 		echo ".. Clearing cache"
-		./postgres-bao-ctl-shutdown.sh
+		./postgres-bao-shutdown.sh
 		sync
-		sudo echo 3 > /proc/sys/vm/drop_caches
-		./postgres-bao-ctl-start.sh
+		sudo sh -c "/bin/echo 3 > /proc/sys/vm/drop_caches"
+		./postgres-bao-start.sh --no-env
 	fi
 
 	echo ".. Running workload"
@@ -54,9 +60,9 @@ do
 		TIM_FILE=/dev/null
 		QUIET="-q"
 	else
-		OUT_FILE=workloads/job-full-train-run$run.out
-		LOG_FILE=workloads/job-full-train-run$run.log
-		TIM_FILE=workloads/job-full-train-timing-run$run.csv
+		OUT_FILE=workloads/job-full-train$OUT_CACHE_SUFFIX-run$run.out
+		LOG_FILE=workloads/job-full-train$OUT_CACHE_SUFFIX-run$run.log
+		TIM_FILE=workloads/job-full-train$OUT_CACHE_SUFFIX-timing-run$run.csv
 		QUIET=""
 	fi
 
