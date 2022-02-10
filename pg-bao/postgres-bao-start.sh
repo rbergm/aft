@@ -19,11 +19,14 @@ cd $WD
 
 echo ".. Starting Postgres Server"
 cd postgres-bao
-LD_LIBRARY_PATH=$(pwd)/build/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH
 
-PATH=$(pwd)/build/bin:$PATH
-export PATH
+if [ "$1" != "--no-env" ] ; then
+	LD_LIBRARY_PATH=$(pwd)/build/lib:$LD_LIBRARY_PATH
+	export LD_LIBRARY_PATH
+
+	PATH=$(pwd)/build/bin:$PATH
+	export PATH
+fi
 
 pg_ctl -D $(pwd)/build/data -l pg.log start
 echo ".. Postgres Server started"
