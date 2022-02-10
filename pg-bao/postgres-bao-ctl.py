@@ -156,17 +156,17 @@ def execute_single_query(cursor: "pg.cursor", query: str, *, workload=True, for_
 def bao_retrain():
     global QUIET
     quiet = "> /dev/null" if QUIET else ""
-    os.system(f"""cd bao/bao_server && CUDA_VISIBLE_DEVICES="" python3 baoctl.py --retrain ${quiet}""")
+    os.system(f"""cd bao/bao_server && CUDA_VISIBLE_DEVICES="" python3 baoctl.py --retrain {quiet}""")
     os.system("sync")
 
 
 def bao_reset():
     global quiet
     quiet = "> /dev/null" if QUIET else ""
-    os.system(f"./postgres-bao-shutdown.sh ${quiet}")
+    os.system(f"./postgres-bao-shutdown.sh {quiet}")
     os.system("rm bao/bao_server/bao.db")
     os.system("rm -rf bao/bao_server/bao_*_model")
-    os.system(f"./postgres-bao-start.sh ${quiet}")
+    os.system(f"./postgres-bao-start.sh {quiet}")
 
 
 def run_workload_chunked(workload: Union[List[str], List[Tuple[str, bool]]], *, conn: "pg.connection", training_chunk_size: int) -> List[str]:
