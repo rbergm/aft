@@ -161,12 +161,12 @@ def bao_retrain():
 
 
 def bao_reset():
-    global quiet
+    global QUIET
     quiet = "> /dev/null" if QUIET else ""
     os.system(f"./postgres-bao-shutdown.sh {quiet}")
     os.system("rm bao/bao_server/bao.db")
     os.system("rm -rf bao/bao_server/bao_*_model")
-    os.system(f"./postgres-bao-start.sh {quiet}")
+    os.system(f"./postgres-bao-start.sh --no-env {quiet}")
 
 
 def run_workload_chunked(workload: Union[List[str], List[Tuple[str, bool]]], *, conn: "pg.connection", training_chunk_size: int) -> List[str]:
