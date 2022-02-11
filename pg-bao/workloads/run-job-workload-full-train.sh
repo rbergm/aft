@@ -1,10 +1,14 @@
 #!/bin/bash
 
+trap "exit" INT
+
 # default argument values
 REPETITIONS=3
 DUMMY=false
 CLEAR_CACHE=false
 RESET=true
+WORKLOAD="workloads/job-full.sql"
+DEBUG=false
 
 # parse the provided arguments
 while [[ $# -gt 0 ]] ; do
@@ -27,8 +31,17 @@ while [[ $# -gt 0 ]] ; do
 			RESET=false
 			shift
 			;;
+		--debug)
+			DEBUG=true
+			WORKLOAD="workloads/job-test.sql"
+			shift
+			;;
 	esac
 done
+
+if [ "$DEBUG" = true ] ; then
+	echo "Debug mode is ACTIVE"
+fi
 
 if [ "$RESET" = true ] ; then
 	echo "Resetting current BAO model"
@@ -45,12 +58,22 @@ for ((run=1 ; run <= $REPETITIONS ; run++))
 do
 	echo "Iteration $run"
 
+	if [ "$DEBUG" = true ] ; then
+		echo ".. Python processes currently running BEFORE iteration $run"
+		ps -ux | grep python3
+	fi
+
 	if [ "$CLEAR_CACHE" = true ] ; then
 		echo ".. Clearing cache"
 		./postgres-bao-shutdown.sh
 		sync
 		sudo sh -c "/bin/echo 3 > /proc/sys/vm/drop_caches"
 		./postgres-bao-start.sh --no-env
+	fi
+
+	if [ "$DEBUG" = true ] && [ "$CLEAR_CACHE" = true ] ; then
+		echo ".. Python processes WITHIN iteration $run - after clearing cache"
+		ps -ux | grep python3
 	fi
 
 	echo ".. Running workload"
@@ -66,7 +89,18 @@ do
 		QUIET=""
 	fi
 
-	./postgres-bao-ctl.py --run-workload --workload workloads/job-full.sql -o $OUT_FILE $QUIET 2>$LOG_FILE
+	./postgres-bao-ctl.py --run-workload --workload $WORKLOAD -o $OUT_FILE $QUIET 2>$LOG_FILE
+
+	if [ "$DEBUG" = true ] && [ "$CLEAR_CACHE" = true ] ; then
+		echo ".. Python processes WITHIN iteration $run - after running workload"
+		ps -ux | grep python3
+	fi
+
 	echo ".. Retraining model"
-	./postgres-bao-ctl.py --retrain-bao --timing --timing-out $TIM_FILE
+	./postgres-bao-ctl.py --retrain-bao --timing --timing-out $TIM_FILE --quiet
+
+	if [ "$DEBUG" = true ] ; then
+		echo ".. Python processes currently running AFTER iteration $run"
+		ps -ux | grep python3
+	fi
 done
