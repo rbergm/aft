@@ -155,7 +155,7 @@ def execute_single_query(cursor: "pg.cursor", query: str, *, workload=True, for_
 
 def bao_retrain():
     global QUIET
-    quiet = "> /dev/null" if QUIET else ""
+    quiet = "> /dev/null 2>&1" if QUIET else ""
     os.system(f"""cd bao/bao_server && CUDA_VISIBLE_DEVICES="" python3 baoctl.py --retrain {quiet}""")
     os.system("sync")
 
