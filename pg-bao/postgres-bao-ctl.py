@@ -249,6 +249,11 @@ def write_training_status(workload: List[Tuple[str, bool]], out: str) -> None:
     training_df.to_csv(out, index=False)
 
 
+def cancel_execution():
+    message("Cancelling execution due to user request")
+    sys.exit(1)
+
+
 def main():
     global QUIET
 
@@ -283,7 +288,7 @@ def main():
             "No workload given. Use --workload to specify the source file.")
 
     QUIET = args.quiet
-    signal.signal(signal.SIGINT, lambda: sys.exit(1))
+    signal.signal(signal.SIGINT, cancel_execution)
 
     if args.timing:
         start_time = timeit.default_timer()
