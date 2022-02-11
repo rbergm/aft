@@ -13,5 +13,5 @@ echo ".. Stopping BAO Server"
 PID=$(cat .bao_server.pid)
 
 echo "Killing server with PID $PID"
-kill -INT $PID
+/bin/kill -INT $PID
 rm .bao_server.pid
