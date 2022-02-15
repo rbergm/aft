@@ -67,7 +67,7 @@ do
 		echo ".. Clearing cache"
 		./postgres-bao-shutdown.sh
 		sync
-		sudo sh -c "/bin/echo 3 > /proc/sys/vm/drop_caches"
+		drop-caches.bin
 		./postgres-bao-start.sh --no-env
 	fi
 

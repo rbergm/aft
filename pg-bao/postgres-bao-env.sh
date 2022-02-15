@@ -1,5 +1,11 @@
 #!/bin/sh
 
-export PATH=$(pwd)/postgres-bao/build/bin:$PATH
+WD=$(pwd)
+export PATH=$WD/postgres-bao/build/bin:$PATH
 
-. $(pwd)/bao/bao-venv/bin/activate
+cd ..
+export PATH=$(pwd)/utils:$PATH
+cd $WD
+
+. $WD/bao/bao-venv/bin/activate
+
