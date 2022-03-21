@@ -9,6 +9,7 @@ CLEAR_CACHE=false
 RESET=true
 WORKLOAD="workloads/job-full.sql"
 DEBUG=false
+SUFFIX=""
 
 # parse the provided arguments
 while [[ $# -gt 0 ]] ; do
@@ -34,6 +35,11 @@ while [[ $# -gt 0 ]] ; do
 		--debug)
 			DEBUG=true
 			WORKLOAD="workloads/job-test.sql"
+			shift
+			;;
+		--suffix)
+			SUFFIX=$2
+			shift
 			shift
 			;;
 	esac
@@ -83,9 +89,9 @@ do
 		TIM_FILE=/dev/null
 		QUIET="-q"
 	else
-		OUT_FILE=workloads/job-full-train$OUT_CACHE_SUFFIX-run$run.out
-		LOG_FILE=workloads/job-full-train$OUT_CACHE_SUFFIX-run$run.log
-		TIM_FILE=workloads/job-full-train$OUT_CACHE_SUFFIX-timing-run$run.csv
+		OUT_FILE=workloads/job-full-train$OUT_CACHE_SUFFIX$SUFFIX-run$run.out
+		LOG_FILE=workloads/job-full-train$OUT_CACHE_SUFFIX$SUFFIX-run$run.log
+		TIM_FILE=workloads/job-full-train$OUT_CACHE_SUFFIX$SUFFIX-timing-run$run.csv
 		QUIET=""
 	fi
 
