@@ -1,9 +1,15 @@
 #!/bin/sh
 
-if [ -f .bao_server.pid ]
-then
-	echo "ERROR: BAO Server appears to be running already (file .bao_server.pid exists)"
-	exit 1
+if [ -f .bao_server.pid ] ; then
+	CUR_PID=$(cat .bao_server.pid)
+	CUR_BAO_PROC="$(ps -ux | awk '{print $2}' | grep $CUR_PID)"
+	if [ -n "$CUR_BAO_PROC" ] ; then
+		echo "ERROR: BAO Server appears to be running already (file .bao_server.pid exists)"
+		exit 1
+	else
+		echo "WARN: Old BAO server data exists (PID in .bao_server.pid), trying to clean up. Should check manually if BAO was started correctly."
+		rm .bao_server.pid
+	fi
 fi
 
 echo ".. Starting BAO Server"
